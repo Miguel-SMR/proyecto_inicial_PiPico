@@ -1,10 +1,10 @@
-from machine import Pin
+from machine import Pin, I2C
+from ssd1306 import SSD1306_I2C
 import time
-
-led_onboard = Pin(25, Pin.OUT)
-
-while True:
-    led_onboard.value(1)
-    time.sleep(1)
-    led_onboard.value(0)
-    time.sleep(1)
+ 
+# --- CONFIGURACIÓN DE PANTALLA ---
+WIDTH = 128
+HEIGHT = 64
+# Asegúrate de que los pines coincidan con tu placa (ej. Raspberry Pi Pico: scl=17, sda=16)
+i2c = I2C(0, scl=Pin(17), sda=Pin(16), freq=400000)
+oled = SSD1306_I2C(WIDTH, HEIGHT, i2c)
