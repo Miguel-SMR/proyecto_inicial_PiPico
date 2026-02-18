@@ -1,28 +1,47 @@
-from machine import Pin, I2C, RTC
+from machine import Pin, I2C
 from ssd1306 import SSD1306_I2C
 import time
- 
-pin = Pin('LED', Pin.OUT)  # Pin integrado del LED en Raspberry Pi Pico
-rtc = RTC()  # Inicializar el reloj real time (RTC)
-# --- CONFIGURACIÓN DE PANTALLA ---
+
+# Configuración del LED
+led = Pin('LED', Pin.OUT)
+
+# Configuración de la pantalla OLED
 WIDTH = 128
 HEIGHT = 64
-
 i2c = I2C(0, scl=Pin(17), sda=Pin(16), freq=400000)
 oled = SSD1306_I2C(WIDTH, HEIGHT, i2c)
 
-rtc.datetime((2026, 2, 17, 2, 15, 21, 0, 0))  # Establecer fecha y hora (año, mes, día, día de la semana, hora, minuto, segundo, milisegundo)
+# Tamaño de la pelota (cuadrado)
+BALL_SIZE = 4
+
+# Posición y velocidad inicial
+x = 10
+y = 10
+dx = 2
+dy = 1
 
 while True:
-    fecha = rtc.datetime()  # Obtener la fecha y hora actual
-    hora = f"{fecha[4]:02d}:{fecha[5]:02d}:{fecha[6]:02d}"  # Formatear la hora
-    
-    oled.fill(0)  # Limpiar la pantalla
-    oled.text("Reloj Pico", 30, 10, 1)
+    oled.fill(0)  # Limpiar pantalla
 
-    oled.text(hora, 30, 30, 1)  # Mostrar la hora en la pantalla
-    oled.text(f"{fecha[2]:02d}/{fecha[1]:02d}/{fecha[0]}", 30, 50, 1)  # Mostrar la fecha en formato DD/MM/YYYY
-    oled.show()  # Actualizar la pantalla
-    pin.toggle()  # Alternar el estado del LED integrado
-    time.sleep(1)  # Esperar 1 segundo antes de actualizar la hora nuevamente
+    # Dibujar la pelota (cuadrado relleno)
+    oled.fill_rect(x, y, BALL_SIZE, BALL_SIZE, 1)
 
+    # Actualizar posición
+    x += dx
+    y += dy
+
+    # Detectar colisiones con los bordes
+    collision = False
+    if x <= 0 or x + BALL_SIZE >= WIDTH:
+        dx = -dx
+        collision = True
+    if y <= 0 or y + BALL_SIZE >= HEIGHT:
+        dy = -dy
+        collision = True
+
+    # Si hubo colisión, hacer parpadear el LED
+    if collision:
+        led.toggle()
+
+    oled.show()      # Mostrar los cambios en la pantalla
+    time.sleep(0.05) # Pequeña pausa para controlar la velocidad
