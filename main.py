@@ -107,12 +107,10 @@ def shutdown_program():
     """Apaga los LEDs y cierra el programa"""
     print("\n=== Cerrando programa ===")
     print("Apagando LEDs...")
-    try:
-        sensor.ctrl_led(LEDMode.KEEPS_ON, LEDColor.RED)
-        time.sleep(0.5)
-        sensor.ctrl_led(LEDMode.OFF, LEDColor.RED)  # Apagar LED
-    except:
-        pass
+    time.sleep(0.5)
+    sensor.ctrl_led(LEDMode.KEEPS_OFF, LEDColor.RED)  # Apagar LED
+    print("PRUEBAS")
+
     
     led.off()  # Apagar LED del Pico
     print("✓ Programa cerrado")
@@ -210,7 +208,7 @@ if __name__ == "__main__":
                     # Limpiar base de datos
                     print("\nBorrando todas las huellas...")
                     try:
-                        result = sensor.delete_fingerprint(DELALL)  # DELALL borra todas
+                        result = sensor.del_fingerprint(DELALL)  # DELALL borra todas
                         if result == 0:
                             print("✓ Base de datos limpiada exitosamente")
                         else:
