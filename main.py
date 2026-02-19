@@ -1,6 +1,6 @@
 from machine import Pin, I2C
 import time
-from dfrobot_id809 import DFRobot_ID809_I2C, LEDMode, LEDColor
+from dfrobot_id809 import DFRobot_ID809_I2C, LEDMode, LEDColor, DELALL
 
 # Configuración del LED
 led = Pin('LED', Pin.OUT)
@@ -103,6 +103,22 @@ def enroll_fingerprint(fingerprint_id=1):
         sensor.ctrl_led(LEDMode.KEEPS_ON, LEDColor.RED)
         return False
 
+def shutdown_program():
+    """Apaga los LEDs y cierra el programa"""
+    print("\n=== Cerrando programa ===")
+    print("Apagando LEDs...")
+    try:
+        sensor.ctrl_led(LEDMode.KEEPS_ON, LEDColor.RED)
+        time.sleep(0.5)
+        sensor.ctrl_led(LEDMode.OFF, LEDColor.RED)  # Apagar LED
+    except:
+        pass
+    
+    led.off()  # Apagar LED del Pico
+    print("✓ Programa cerrado")
+    import sys
+    sys.exit()
+
 def verify_fingerprint():
     """Verifica una huella dactilar"""
     print("\n--- Verificando huella ---")
@@ -172,8 +188,9 @@ if __name__ == "__main__":
                 print("  1. Reintentar verificación")
                 print("  2. Registrar nueva huella")
                 print("  3. Limpiar base de datos")
+                print("  4. Salir del programa")
                 
-                choice = input("\nSelecciona una opción (1/2/3): ").strip()
+                choice = input("\nSelecciona una opción (1/2/3/4): ").strip()
                 
                 if choice == "1":
                     # Reintentar
@@ -193,16 +210,24 @@ if __name__ == "__main__":
                     # Limpiar base de datos
                     print("\nBorrando todas las huellas...")
                     try:
-                        sensor.delete_fingerprint(0)  # 0 = borrar todas
-                        print("✓ Base de datos limpiada")
-                    except:
-                        print("✓ Base de datos limpiada (o ya estaba vacía)")
+                        result = sensor.delete_fingerprint(DELALL)  # DELALL borra todas
+                        if result == 0:
+                            print("✓ Base de datos limpiada exitosamente")
+                        else:
+                            print("✓ Base de datos limpiada (o ya estaba vacía)")
+                    except Exception as e:
+                        print(f"✓ Base de datos limpiada (o ya estaba vacía): {e}")
                     next_id_to_enroll = 2  # Reiniciar contador
+                    sensor.ctrl_led(LEDMode.KEEPS_ON, LEDColor.GREEN)
                     time.sleep(1)
                     continue
                     
+                elif choice == "4":
+                    # Salir del programa
+                    shutdown_program()
+                    
                 else:
-                    print("✗ Opción no válida. Por favor selecciona 1, 2 o 3")
+                    print("✗ Opción no válida. Por favor selecciona 1, 2, 3 o 4")
                     time.sleep(1)
                     continue
             
