@@ -139,7 +139,7 @@ class DFRobot_ID809:
         if data:
             try:
                 return data.decode("utf-8").rstrip("\x00")
-            except (UnicodeDecodeError, AttributeError):
+            except Exception:
                 return ""
         return ""
 
