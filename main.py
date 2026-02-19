@@ -21,77 +21,82 @@ def init_sensor():
         # Verificar conexión
         if sensor.is_connected():
             print("✓ Sensor conectado!")
-            
-            # Encender LED verde
-            sensor.ctrl_led(LEDMode.KEEPS_ON, LEDColor.GREEN)
-            print("✓ LED activado!")
-            
             return True
         else:
             print("✗ Error: Sensor no conectado")
-            sensor.ctrl_led(LEDMode.KEEPS_ON, LEDColor.RED)
             return False
     else:
         print("✗ Error: No se pudo inicializar el sensor")
         led.on()  # Enciende el LED del Pico como indicador de error
         return False
 
-def verify_fingerprint():
-    """Verifica una huella dactilar"""
-    print("\n--- Verificando huella ---")
-    print("Coloca tu dedo en el sensor...")
-    
-    # LED parpadeante azul mientras espera
-    sensor.ctrl_led(LEDMode.BREATHING, LEDColor.BLUE)
-    
-    # Capturar huella (timeout de 10 segundos)
-    if sensor.collection_fingerprint(timeout=10000) == 0:
-        print("Huella capturada, buscando en la base de datos...")
-        
-        # Buscar huella en la base de datos
-        result = sensor.search()
-        
-        if result > 0:
-            print(f"✓ ¡Huella reconocida! ID: {result}")
-            sensor.ctrl_led(LEDMode.KEEPS_ON, LEDColor.GREEN)
-            return result
-        else:
-            print("✗ Huella no reconocida")
-            sensor.ctrl_led(LEDMode.KEEPS_ON, LEDColor.RED)
-            return -1
-    else:
-        print(f"✗ Error al capturar huella: {sensor.get_error_description()}")
-        sensor.ctrl_led(LEDMode.KEEPS_ON, LEDColor.RED)
-        return -1
+def get_led_modes():
+    """Obtiene todos los modos de LED disponibles"""
+    modes = []
+    for attr in dir(LEDMode):
+        if not attr.startswith('_'):
+            modes.append((attr, getattr(LEDMode, attr)))
+    return modes
 
-def get_device_info():
-    """Obtiene información del sensor"""
-    info = sensor.get_device_info()
-    if info:
-        print(f"\n--- Información del sensor ---")
-        print(f"Modelo: {info}")
-        print(f"Capacidad: {sensor.fingerprint_capacity} huellas")
-    else:
-        print("✗ No se pudo obtener información del sensor")
+def get_led_colors():
+    """Obtiene todos los colores de LED disponibles"""
+    colors = []
+    for attr in dir(LEDColor):
+        if not attr.startswith('_'):
+            colors.append((attr, getattr(LEDColor, attr)))
+    return colors
+
+def demo_all_led_functions():
+    """Demostración de todas las funciones de LED rotando entre modos y colores"""
+    print("\n=== DEMOSTRACIÓN DE FUNCIONES DE LED ===\n")
+    
+    # Obtener todos los modos y colores
+    modes = get_led_modes()
+    colors = get_led_colors()
+    
+    print(f"Modos de LED encontrados: {len(modes)}")
+    for mode_name, _ in modes:
+        print(f"  - {mode_name}")
+    
+    print(f"\nColores de LED encontrados: {len(colors)}")
+    for color_name, _ in colors:
+        print(f"  - {color_name}")
+    
+    print("\n--- Rotando entre todas las combinaciones ---\n")
+    
+    counter = 0
+    
+    # Mientras True - rotando infinitamente
+    while True:
+        for mode_name, mode_value in modes:
+            for color_name, color_value in colors:
+                counter += 1
+                
+                # Aplicar la combinación
+                sensor.ctrl_led(mode_value, color_value)
+                
+                # Mostrar información
+                print(f"[{counter}] Modo: {mode_name:<15} | Color: {color_name:<10}", end="")
+                
+                # Esperar 2 segundos para ver el efecto
+                time.sleep(2)
+                
+                # Limpiar la línea y mostrar lo siguiente
+                print("\r", end="")
+        
+        print("\n--- Ciclo completado, reiniciando ---\n")
+        time.sleep(1)
 
 # Programa principal
 if __name__ == "__main__":
-    print("=== Sistema de Sensor de Huella Dactilar ===\n")
+    print("=== Demostración de LED del Sensor ID809 ===\n")
     
     # Inicializar sensor
     if init_sensor():
-        # Obtener información del sensor
-        get_device_info()
+        print("\n✓ Sensor listo para la demostración\n")
         
-        # Esperar un poco
-        time.sleep(1)
-        
-        # Ejemplo: Verificar una huella
-        result = verify_fingerprint()
-        
-        # Mantener el programa corriendo
-        while True:
-            time.sleep(1)
+        # Ejecutar demostración de LEDs
+        demo_all_led_functions()
     else:
         print("\nNo se pudo iniciar el programa")
         while True:
