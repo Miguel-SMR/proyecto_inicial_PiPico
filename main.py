@@ -151,19 +151,61 @@ if __name__ == "__main__":
             if enroll_fingerprint(1):
                 print("\n✓ Huella principal registrada correctamente")
                 time.sleep(2)
-                
-                # Ahora verificar la huella
-                print("\nVerificando la huella registrada...")
-                result = verify_fingerprint()
-            else:
-                print("\n✗ No se puedo registrar la huella")
-        else:
-            print("\n✓ Hay huellas registradas. Verificando...\n")
-            # Verificar una huella
-            result = verify_fingerprint()
         
-        # Mantener el programa corriendo
+        # Loop principal de verificación
+        next_id_to_enroll = 2
+        
         while True:
+            print("\n" + "="*50)
+            print("Verificando huella...")
+            print("="*50)
+            
+            # Intentar verificar huella
+            result = verify_fingerprint()
+            
+            if result > 0:
+                print("\n✓ ¡Acceso concedido!")
+                time.sleep(2)
+            else:
+                print("\n✗ Huella no reconocida o error en captura")
+                print("\nOpciones disponibles:")
+                print("  1. Reintentar verificación")
+                print("  2. Registrar nueva huella")
+                print("  3. Limpiar base de datos")
+                
+                choice = input("\nSelecciona una opción (1/2/3): ").strip()
+                
+                if choice == "1":
+                    # Reintentar
+                    print("\nReintentando verificación...\n")
+                    continue
+                    
+                elif choice == "2":
+                    # Registrar nueva huella
+                    print(f"\nRegistrando nueva huella con ID {next_id_to_enroll}...")
+                    if enroll_fingerprint(next_id_to_enroll):
+                        print(f"\n✓ Huella {next_id_to_enroll} registrada exitosamente")
+                        next_id_to_enroll += 1
+                    time.sleep(1)
+                    continue
+                    
+                elif choice == "3":
+                    # Limpiar base de datos
+                    print("\nBorrando todas las huellas...")
+                    try:
+                        sensor.delete_fingerprint(0)  # 0 = borrar todas
+                        print("✓ Base de datos limpiada")
+                    except:
+                        print("✓ Base de datos limpiada (o ya estaba vacía)")
+                    next_id_to_enroll = 2  # Reiniciar contador
+                    time.sleep(1)
+                    continue
+                    
+                else:
+                    print("✗ Opción no válida. Por favor selecciona 1, 2 o 3")
+                    time.sleep(1)
+                    continue
+            
             time.sleep(1)
     else:
         print("\nNo se pudo iniciar el programa")
